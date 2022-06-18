@@ -1,13 +1,13 @@
 using System.Diagnostics;
 
-const int NumberOfFactors = 20; 
+const int NumberOfFactors = 5; 
 const double global_max_input = 100; 
 const double global_min_input = 0.001;
 
 static double clamp(double x) => Math.Max(global_min_input, Math.Min(x, global_max_input));
 
-IndependentSecretVarFunction secretFunction = new IndependentSecretVarFunction(NumberOfFactors);
-//DependentSecretVarFunction secretFunction = new DependentSecretVarFunction(NumberOfFactors);
+//IndependentSecretVarFunction secretFunction = new IndependentSecretVarFunction(NumberOfFactors);
+DependentSecretVarFunction secretFunction = new DependentSecretVarFunction(NumberOfFactors);
 
 int maxTries = 10000000;
 
@@ -67,9 +67,9 @@ static (double max, int steps, long ms, double[] best_solution) SolveHillClimb(I
     for (int i = 0; i < NumberOfFactors; i++)
     {
         if(StartRandom) 
-            inputs[i] = clamp(MultiThreadRandom.NextDouble() * 100);
+            inputs[i] = clamp(MultiThreadRandom.NextDouble() * global_max_input);
         else 
-            inputs[i] = inputs[i] = 100/2;
+            inputs[i] = inputs[i] = global_max_input/2;
     }
 
     int step = 0; 
@@ -127,7 +127,7 @@ Parallel.For<double>(0, maxTries, () => 0, (i,loop, max_sub) =>
         double[] inputs = new double[NumberOfFactors];
         for (int j = 0; j < NumberOfFactors; j++)
         {
-            inputs[j] = clamp(MultiThreadRandom.NextDouble() * 100);
+            inputs[j] = clamp(MultiThreadRandom.NextDouble() * global_max_input);
         }
         double result = secretFunction.ComputeSecretFunction(inputs);
         if(result > max_sub)
@@ -165,7 +165,7 @@ static void SolveSerial(ISecretFunction secretFunction, int maxTries)
     {
         for (int i = 0; i < NumberOfFactors; i++)
         {
-            inputs[i] = clamp((r.NextDouble()) * 100);
+            inputs[i] = clamp((r.NextDouble()) * global_max_input);
         }
         double result = secretFunction.ComputeSecretFunction(inputs);
         if (result > max)
