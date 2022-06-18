@@ -1,11 +1,12 @@
-﻿public class IndependentSecretVarFunction
+﻿public class IndependentSecretVarFunction : ISecretFunction
 {
     double eps = 1e-6;
     private double[] factors;
     private double[] exponents;
 
     public int NumberOfFactors; 
-
+    int ISecretFunction.NumberOfFactors => NumberOfFactors;
+    
     public IndependentSecretVarFunction(int NumberOfFactors)
     {
         Random d = new Random(556872);

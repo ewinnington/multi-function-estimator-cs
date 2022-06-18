@@ -3,6 +3,8 @@
 public static class MultiThreadRandom
 {
     private static Random _global = new Random();
+    
+    #pragma warning disable CS8618 // Non-nullable field is uninitialized.
     [ThreadStatic]
     private static Random _local;
 
