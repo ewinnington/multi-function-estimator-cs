@@ -18,7 +18,7 @@
         for (int j = 0; j < NumberOfFactors; j++)
         for (int i = 0; i < NumberOfFactors; i++)
         {
-                factors[j,i] = (d.NextDouble() - 0.5) * 100;
+                factors[j,i] = (d.NextDouble() - 0.5) * 2;
                 exponents[j,i] = (d.NextDouble() - 0.5) * 3;
 
                 if (Math.Abs(exponents[j,i]) < eps)

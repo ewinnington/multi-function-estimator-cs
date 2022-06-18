@@ -1,17 +1,56 @@
 using System.Diagnostics;
 
-const int NumberOfFactors = 5; 
+const int NumberOfFactors = 20; 
+const double global_max_input = 100; 
+const double global_min_input = 0.001;
+
+static double clamp(double x) => Math.Max(global_min_input, Math.Min(x, global_max_input));
 
 IndependentSecretVarFunction secretFunction = new IndependentSecretVarFunction(NumberOfFactors);
 //DependentSecretVarFunction secretFunction = new DependentSecretVarFunction(NumberOfFactors);
 
 int maxTries = 10000000;
 
-SolveHillClimb(secretFunction, maxTries);
+
+(double max, int steps, long ms, double[] best_solution) = SolveHillClimb(secretFunction, maxTries);
+Console.WriteLine("Max value hill: " + max + " in " + ms + "ms" + " with " + steps + " steps");
+Console.WriteLine("Best inputs: " + string.Join("; ", best_solution)); 
+
+SolveHillClimbParallel(secretFunction, maxTries);
 SolveParallel(secretFunction, maxTries);
 SolveSerial(secretFunction, maxTries);
 
-static void SolveHillClimb(ISecretFunction secretFunction, int maxTries)
+static void SolveHillClimbParallel(ISecretFunction secretFunction, int maxTries)
+{
+    const int nClimbers = 50;
+
+    double global_max = double.MinValue;
+    object global_max_lock = new object();
+
+    Stopwatch sw = new Stopwatch();
+    sw.Start();
+    Parallel.For<double>(0, nClimbers, 
+    () => { return double.MinValue;}, 
+    (i,loop, max_value) => {
+        var (max, steps, ms, best_solution) = SolveHillClimb(secretFunction, maxTries, true);
+        if(max > max_value)
+            max_value = max; 
+        return max_value;
+    }, (max_value) => {
+        lock (global_max_lock)
+        {
+            if (max_value > global_max)
+            {
+                global_max = max_value;
+            }
+        }
+    });
+    sw.Stop();
+    Console.WriteLine("Max value parallel Hill climber: " + global_max + " in " + sw.ElapsedMilliseconds + "ms");
+}
+
+
+static (double max, int steps, long ms, double[] best_solution) SolveHillClimb(ISecretFunction secretFunction, int maxTries, bool StartRandom = false)
 {
     int NumberOfFactors = secretFunction.NumberOfFactors; 
     double max = 0;
@@ -23,12 +62,14 @@ static void SolveHillClimb(ISecretFunction secretFunction, int maxTries)
     Stopwatch sw = new Stopwatch();
     sw.Start();
     max = 0;
-    Random r = new Random();
 
     //initial position in the middle of the field 
     for (int i = 0; i < NumberOfFactors; i++)
     {
-        inputs[i] = 100/2;
+        if(StartRandom) 
+            inputs[i] = clamp(MultiThreadRandom.NextDouble() * 100);
+        else 
+            inputs[i] = inputs[i] = 100/2;
     }
 
     int step = 0; 
@@ -40,9 +81,9 @@ static void SolveHillClimb(ISecretFunction secretFunction, int maxTries)
         for (int d = 0; d < NumberOfFactors; d++)
             {
             double prev = inputs[d];
-            inputs[d] = Math.Max(0, Math.Min(100, prev + step_size));  
+            inputs[d] = clamp( prev + step_size);  
             results[2*d+1] = secretFunction.ComputeSecretFunction(inputs);
-            inputs[d] = Math.Max(0, Math.Min(100, prev - step_size));  
+            inputs[d] = clamp(prev - step_size);  
             results[2*d+2] = secretFunction.ComputeSecretFunction(inputs);
             inputs[d] = prev;
             }
@@ -53,24 +94,21 @@ static void SolveHillClimb(ISecretFunction secretFunction, int maxTries)
         gain = best_step - results[0]; 
         max = best_step; 
         
-        if(index == 0) break; //top of the hill
-        else 
-        {
+        if(index != 0) {
             int d = ((index+1)/2)-1; 
             if(index % 2 == 1) // odd index
             {
-                inputs[d] = Math.Max(0, Math.Min(100, inputs[d] + step_size));
+                inputs[d] = clamp( inputs[d] + step_size);
             }
             else // even index
             {
-                inputs[d] = Math.Max(0, Math.Min(100, inputs[d] - step_size));
+                inputs[d] = clamp( inputs[d] - step_size);
             }
         }
         step++; 
     }
     sw.Stop();
-    Console.WriteLine("Max value hill: " + max + " in " + sw.ElapsedMilliseconds + "ms" + " with " + step + " steps");
-    Console.WriteLine("Best inputs: " + string.Join("; ", inputs)); 
+    return (max, step, sw.ElapsedMilliseconds, inputs);
 }
 
 static void SolveParallel(ISecretFunction secretFunction, int maxTries)
@@ -89,7 +127,7 @@ Parallel.For<double>(0, maxTries, () => 0, (i,loop, max_sub) =>
         double[] inputs = new double[NumberOfFactors];
         for (int j = 0; j < NumberOfFactors; j++)
         {
-            inputs[j] = MultiThreadRandom.NextDouble() * 100;
+            inputs[j] = clamp(MultiThreadRandom.NextDouble() * 100);
         }
         double result = secretFunction.ComputeSecretFunction(inputs);
         if(result > max_sub)
@@ -127,7 +165,7 @@ static void SolveSerial(ISecretFunction secretFunction, int maxTries)
     {
         for (int i = 0; i < NumberOfFactors; i++)
         {
-            inputs[i] = (r.NextDouble()) * 100;
+            inputs[i] = clamp((r.NextDouble()) * 100);
         }
         double result = secretFunction.ComputeSecretFunction(inputs);
         if (result > max)
@@ -135,12 +173,6 @@ static void SolveSerial(ISecretFunction secretFunction, int maxTries)
             max = result;
             Array.Copy(inputs,best_inputs,NumberOfFactors);
         }
-    /*
-        if(tries % 100000 == 0)
-        {
-            Console.WriteLine("Tries: " + tries + " Max: " + max);
-        }
-        */
     }
 
     Console.WriteLine("Max value serial: " + max + " in " + sw.ElapsedMilliseconds + "ms");
