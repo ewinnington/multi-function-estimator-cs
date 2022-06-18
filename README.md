@@ -37,7 +37,11 @@ Issues encountered and resolved:
 
 ## Hill climb algorithm 
 
-From a starting position, take a step of 1 unit in the positive and negative direction of each $i$ dimension and obtain the results for each of these possible steps, take the best step and continue with the next step. Exiting when with the gain is too small so as not to loop endlessly due to large step. In case the gain becomes too small, it would be possible to reduce the step sucessively to get closer to the optimal solution. 
+From a starting position in the middle of the space, take a step of 1 unit in the positive and negative direction of each $i$ dimension and obtain the results for each of these possible steps, take the best step and continue with the next step. Exiting when with the gain is too small so as not to loop endlessly due to large step. In case the gain becomes too small, it would be possible to reduce the step sucessively to get closer to the optimal solution. 
+
+## Parallel version of hill climb
+
+Call the hill climber in parallel using random starting positions. 
 
 
 To run: 
