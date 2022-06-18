@@ -1,6 +1,6 @@
 # Finding the maximum of a secret function by using Parallel For in C#
 
-I create a random function that is represented by the formula
+I create a random function in $i$ dimensions that is represented by the formula
 
 ## Independent Variable Secret Function : 
 $ \sum_{i}{a_ix_i^{c_i}} $
@@ -35,6 +35,9 @@ Issues encountered and resolved:
 
 2) Parallel For: I keep a thread local maximum and update the final maximum at the end with a lock to avoid multi-threaded updates to the max value
 
+## Hill climb algorithm 
+
+From a starting position, take a step of 1 unit in the positive and negative direction of each $i$ dimension and obtain the results for each of these possible steps, take the best step and continue with the next step. Exiting when with the gain is too small so as not to loop endlessly due to large step. In case the gain becomes too small, it would be possible to reduce the step sucessively to get closer to the optimal solution. 
 
 
 To run: 
