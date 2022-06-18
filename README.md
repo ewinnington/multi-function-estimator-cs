@@ -19,7 +19,7 @@ with $ a_{i,j} $ and $ c_{i,j} $ randomly drawn.
 
 $Z$ is a random double variable
 
-Factors $a_i \in \mathbb{R}, a_i = 100(Z - 0.5), Z \in [0..1]$ 
+Factors $a_i \in \mathbb{R}, a_i = 2(Z - 0.5), Z \in [0..1]$ 
 
 Exponents $c_i \in \mathbb{R}, a_i = 3(Z - 0.5), Z \in [0..1]$
 
