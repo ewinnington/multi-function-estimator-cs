@@ -92,6 +92,8 @@ static (double max, int steps, long ms, double[] best_solution) SolveHillClimb(I
 
         
         gain = best_step - results[0]; 
+        if(step < 50) //so that we do a few steps to not exit before we have a good solution
+            gain = 0.1;
         max = best_step; 
         
         if(index != 0) {
